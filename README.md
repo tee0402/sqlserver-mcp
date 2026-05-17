@@ -133,37 +133,6 @@ Adjust the path and credentials to match your environment. Optional env vars (de
 
 Fully quit Claude Desktop (check the system tray) and relaunch. You should see a tools icon in the chat input confirming the MCP server is connected.
 
-## Example questions to ask
-
-- *"What tables are in MyDatabase and how are they related?"*
-- *"Show me all stored procedures that reference the Orders table"*
-- *"What does the usp_ProcessOrder stored procedure do?"*
-- *"List all triggers on the Customers table"*
-- *"What SQL Agent jobs are configured and when do they run?"*
-- *"Are there any linked servers set up on this instance?"*
-- *"Show me all indexes on the Orders table"*
-- *"What foreign key relationships exist in MyDatabase?"*
-
-## Security
-
-Three independent layers prevent access to user data:
-
-**Layer 1 — SQL Server login permissions**
-`claude_readonly` has `VIEW DEFINITION` only. No `SELECT` is ever granted on user tables, so any attempt to query row data fails at the database level.
-
-**Layer 2 — Metadata allowlist**
-Every `FROM` and `JOIN` source in a query is checked before execution. Only the following are permitted:
-- `sys.*` — system catalog views
-- `INFORMATION_SCHEMA.*` — standard schema views
-- `msdb.dbo.sysjobs`, `sysjobsteps`, `sysjobhistory`, `sysschedules`, etc.
-
-**Layer 3 — Write keyword blocklist**
-Queries containing `INSERT`, `UPDATE`, `DELETE`, `DROP`, `CREATE`, `ALTER`, `TRUNCATE`, `MERGE`, `EXEC`, `EXECUTE`, `BULK`, or `XP_*` are rejected before reaching the database.
-
-### A note on secrets
-
-`claude_desktop_config.json` is a plain text file. Treat it like any other file containing credentials — do not check it into source control, and restrict access to it as you would any sensitive config file.
-
 ## Removing access
 
 To fully remove the `claude_readonly` login:
@@ -206,3 +175,34 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'claude_readonly')
 IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'claude_readonly')
     DROP LOGIN claude_readonly;
 ```
+
+## Security
+
+Three independent layers prevent access to user data:
+
+**Layer 1 — SQL Server login permissions**
+`claude_readonly` has `VIEW DEFINITION` only. No `SELECT` is ever granted on user tables, so any attempt to query row data fails at the database level.
+
+**Layer 2 — Metadata allowlist**
+Every `FROM` and `JOIN` source in a query is checked before execution. Only the following are permitted:
+- `sys.*` — system catalog views
+- `INFORMATION_SCHEMA.*` — standard schema views
+- `msdb.dbo.sysjobs`, `sysjobsteps`, `sysjobhistory`, `sysschedules`, etc.
+
+**Layer 3 — Write keyword blocklist**
+Queries containing `INSERT`, `UPDATE`, `DELETE`, `DROP`, `CREATE`, `ALTER`, `TRUNCATE`, `MERGE`, `EXEC`, `EXECUTE`, `BULK`, or `XP_*` are rejected before reaching the database.
+
+### A note on secrets
+
+`claude_desktop_config.json` is a plain text file. Treat it like any other file containing credentials — do not check it into source control, and restrict access to it as you would any sensitive config file.
+
+## Example questions to ask
+
+- *"What tables are in MyDatabase and how are they related?"*
+- *"Show me all stored procedures that reference the Orders table"*
+- *"What does the usp_ProcessOrder stored procedure do?"*
+- *"List all triggers on the Customers table"*
+- *"What SQL Agent jobs are configured and when do they run?"*
+- *"Are there any linked servers set up on this instance?"*
+- *"Show me all indexes on the Orders table"*
+- *"What foreign key relationships exist in MyDatabase?"*
