@@ -1,6 +1,21 @@
 # SQL Server MCP Server
 
-A simple, secure MCP (Model Context Protocol) server that gives Claude read-only access to SQL Server metadata. Lets you ask Claude questions about your database schema, stored procedures, triggers, indexes, SQL Agent jobs, linked servers, and more — without exposing any user table data.
+A simple, secure MCP (Model Context Protocol) server that gives Claude Desktop (or any MCP client) read-only access to SQL Server metadata. Lets you ask your AI tool questions about your database schema, stored procedures, triggers, indexes, SQL Agent jobs, linked servers, and more — without exposing any user table data.
+
+## What it can read
+
+| Object | Accessible |
+|---|---|
+| Table and column names | ✅ |
+| Stored procedure code | ✅ |
+| Function code | ✅ |
+| Trigger code | ✅ |
+| View definitions | ✅ |
+| Indexes and constraints | ✅ |
+| Linked servers | ✅ |
+| SQL Agent jobs and schedules | ✅ |
+| Server configuration | ✅ |
+| User table data (rows) | ❌ Blocked |
 
 ## How it works
 
@@ -19,7 +34,7 @@ Claude can query SQL Server system metadata views through a single `query` tool.
 
 ### 1. Create the read-only SQL Server login
 
-Run the following script in SSMS as `sa` or a sysadmin account:
+Replace the password in the following script and run it in SSMS as `sa` or a sysadmin account:
 
 ```sql
 -- Create the login
@@ -118,22 +133,7 @@ Adjust the path and credentials to match your environment. Optional env vars (de
 
 Fully quit Claude Desktop (check the system tray) and relaunch. You should see a tools icon in the chat input confirming the MCP server is connected.
 
-## What Claude can see
-
-| Object | Accessible |
-|---|---|
-| Table and column names | ✅ |
-| Stored procedure code | ✅ |
-| Function code | ✅ |
-| Trigger code | ✅ |
-| View definitions | ✅ |
-| Indexes and constraints | ✅ |
-| Linked servers | ✅ |
-| SQL Agent jobs and schedules | ✅ |
-| Server configuration | ✅ |
-| User table data (rows) | ❌ Blocked |
-
-## Example questions to ask Claude
+## Example questions to ask
 
 - *"What tables are in MyDatabase and how are they related?"*
 - *"Show me all stored procedures that reference the Orders table"*
@@ -206,34 +206,3 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'claude_readonly')
 IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'claude_readonly')
     DROP LOGIN claude_readonly;
 ```
-
-## Project structure
-
-```
-sqlserver-mcp/
-├── src/
-│   └── index.ts        # MCP server
-├── dist/               # Compiled output (after npm run build)
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-## Troubleshooting
-
-**Tools icon not appearing in Claude Desktop**
-Fully quit Claude Desktop (check system tray) and relaunch. Check `%APPDATA%\Claude\logs\` for error details.
-
-**"MSSQL_SERVER, MSSQL_USER and MSSQL_PASSWORD are required"**
-The env vars are missing from `claude_desktop_config.json` or the file wasn't saved correctly. Verify the `env` block is present and restart Claude Desktop.
-
-**"Failed to connect to SQL Server"**
-- Verify TCP/IP is enabled in SQL Server Configuration Manager
-- For named instances use `localhost\INSTANCENAME` as the server value
-- For local dev try setting `MSSQL_ENCRYPT` to `false`
-
-**"Login failed for user claude_readonly"**
-Re-run the setup script in SSMS to confirm the login and user were created correctly.
-
-**Query blocked unexpectedly**
-The metadata allowlist only permits `sys.*`, `INFORMATION_SCHEMA.*`, and specific `msdb` tables. If you need to add a source, update `ALLOWED_SOURCES` in `src/index.ts` and rebuild.
